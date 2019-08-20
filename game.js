@@ -5,7 +5,8 @@ var gameOptions = {
   boardSize: {
     rows: 4,
     cols: 4
-  }
+  },
+  tweenSpeed: 2000
 };
 
 window.onload = function() {
@@ -49,6 +50,7 @@ class playGame extends Phaser.Scene {
     super("PlayGame");
   }
   create() {
+    this.canMove = false;
     this.boardArray = [];
     console.log("This is my very first Phaser game");
     for (var i = 0; i < gameOptions.boardSize.rows; i++) {
@@ -71,7 +73,15 @@ class playGame extends Phaser.Scene {
     }
     this.addTile();
     this.addTile();
+    this.input.keyboard.on("keydown", this.handleKey, this);
+    //this.input.on("pointerup", this.handleSwipe, this);
   }
+
+  handleKey(e) {
+    var keyPressed = e.code;
+    console.log(`keycode : ${keyPressed}`);
+  }
+
   getTilePosition(row, col) {
     var posX =
       gameOptions.tileSpace * (col + 1) + gameOptions.tileSize * (col + 0.5);
@@ -79,6 +89,7 @@ class playGame extends Phaser.Scene {
       gameOptions.tileSpace * (row + 1) + gameOptions.tileSize * (row + 0.5);
     return new Phaser.Geom.Point(posX, posY);
   }
+
   addTile() {
     var emptyTiles = [];
     for (var i = 0; i < gameOptions.boardSize.rows; i++) {
@@ -96,6 +107,17 @@ class playGame extends Phaser.Scene {
       this.boardArray[chosenTile.row][chosenTile.col].tileValue = 1;
       this.boardArray[chosenTile.row][chosenTile.col].tileSprite.visible = true;
       this.boardArray[chosenTile.row][chosenTile.col].tileSprite.setFrame(0);
+      this.boardArray[chosenTile.row][chosenTile.col].tileSprite.alpha = 0;
+      this.tweens.add({
+        targets: [this.boardArray[chosenTile.row][chosenTile.col].tileSprite],
+        alpha: 1,
+        duration: gameOptions.tweenSpeed,
+        callbackScope: this,
+        onComplete: function() {
+          console.log("tween completed");
+          this.canMove = true;
+        }
+      });
     }
   }
 }
