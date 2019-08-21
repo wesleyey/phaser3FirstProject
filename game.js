@@ -9,6 +9,11 @@ var gameOptions = {
   tweenSpeed: 2000
 };
 
+const LEFT = 0;
+const RIGHT = 1;
+const UP = 2;
+const DOWN = 3;
+
 window.onload = function() {
   var gameConfig = {
     width:
@@ -74,12 +79,44 @@ class playGame extends Phaser.Scene {
     this.addTile();
     this.addTile();
     this.input.keyboard.on("keydown", this.handleKey, this);
-    //this.input.on("pointerup", this.handleSwipe, this);
+    this.input.on("pointerup", this.handleSwipe, this);
+  }
+
+  makeMove(d) {
+    console.log("about to move");
   }
 
   handleKey(e) {
+    if (this.canMove) {
+      switch (e.code) {
+        case "KeyA":
+        case "ArrowLeft":
+          this.makeMove(LEFT);
+          break;
+        case "KeyD":
+        case "ArrowRight":
+          this.makeMove(RIGHT);
+          break;
+        case "KeyW":
+        case "ArrowUp":
+          this.makeMove(UP);
+          break;
+        case "KeyS":
+        case "ArrowDown":
+          this.makeMove(DOWN);
+          break;
+      }
+    }
     var keyPressed = e.code;
     console.log(`keycode : ${keyPressed}`);
+  }
+
+  handleSwipe(e) {
+    var swipeTime = e.upTime - e.downTime;
+    var swipe = new Phaser.Geom.Point(e.upX - e.downX, e.upY - e.downY);
+    console.log(`Movement time: ${swipeTime} ms`);
+    console.log(`Horizontal distance: ${swipe.x} pixels`);
+    console.log(`Vertical distance: ${swipe.y} pixels`);
   }
 
   getTilePosition(row, col) {
