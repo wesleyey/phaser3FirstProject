@@ -6,7 +6,7 @@ var gameOptions = {
     rows: 4,
     cols: 4
   },
-  tweenSpeed: 2000,
+  tweenSpeed: 200,
   swipeMaxTime: 1000,
   swipeMinDistance: 20,
   swipeMinNormal: 0.85
@@ -85,20 +85,46 @@ class playGame extends Phaser.Scene {
     this.input.on("pointerup", this.handleSwipe, this);
   }
 
+  isLegalPosition(row, col) {
+    var rowInside = row >= 0 && row < gameOptions.boardSize.rows;
+    var colInside = col >= 0 && col < gameOptions.boardSize.cols;
+    return rowInside && colInside;
+  }
+
   makeMove(d) {
     //console.log("about to move");
     var dRow = d === LEFT || d === RIGHT ? 0 : d === UP ? -1 : 1;
     var dCol = d === UP || d === DOWN ? 0 : d === LEFT ? -1 : 1;
     this.canMove = false;
-    for (var i = 0; i < gameOptions.boardSize.rows; i++) {
-      for (var j = 0; j < gameOptions.boardSize.cols; j++) {
-        var curRow = dRow === 1 ? gameOptions.boardSize.rows - 1 - i : i;
-        var curCol = dCol === 1 ? gameOptions.boardSize.cols - 1 - j : j;
+    var movedTiles = 0;
+    var firstRow = d === UP ? 1 : 0;
+    var lastRow = gameOptions.boardSize.rows - (d === DOWN ? 1 : 0);
+    var firstCol = d === LEFT ? 1 : 0;
+    var lastCol = gameOptions.boardSize.cols - (d === RIGHT ? 1 : 0);
+    for (var i = firstRow; i < lastRow; i++) {
+      for (var j = firstCol; j < lastCol; j++) {
+        var curRow = dRow === 1 ? lastRow - 1 - i : i;
+        var curCol = dCol === 1 ? lastCol - 1 - j : j;
         var tileValue = this.boardArray[curRow][curCol].tileValue;
         if (tileValue !== 0) {
-          var newPos = this.getTilePosition(curRow + dRow, curCol + dCol);
+          var newRow = curRow;
+          var newCol = curCol;
+          while (this.isLegalPosition(newRow + dRow, newCol + dCol)) {
+            newRow += dRow;
+            newCol += dCol;
+          }
+          movedTiles++;
+          this.boardArray[curRow][curCol].tileSprite.depth = movedTiles;
+          var newPos = this.getTilePosition(newRow, newCol);
           this.boardArray[curRow][curCol].tileSprite.x = newPos.x;
           this.boardArray[curRow][curCol].tileSprite.y = newPos.y;
+          this.boardArray[curRow][curCol].tileValue = 0;
+          if (this.boardArray[newRow][newCol].tileValue === tileValue) {
+            this.boardArray[newRow][newCol].tileValue++;
+            this.boardArray[curRow][curCol].tileSprite.setFrame(tileValue);
+          } else {
+            this.boardArray[newRow][newCol].tileValue = tileValue;
+          }
         }
       }
     }
