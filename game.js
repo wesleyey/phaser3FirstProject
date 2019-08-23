@@ -85,6 +85,24 @@ class playGame extends Phaser.Scene {
     this.input.on("pointerup", this.handleSwipe, this);
   }
 
+  refreshBoard() {
+    for (var i = 0; i < gameOptions.boardSize.rows; i++) {
+      for (var j = 0; j < gameOptions.boardSize.cols; j++) {
+        var spritePosition = this.getTilePosition(i, j);
+        this.boardArray[i][j].tileSprite.x = spritePosition.x;
+        this.boardArray[i][j].tileSprite.y = spritePosition.y;
+        var tileValue = this.boardArray[i][j].tileValue;
+        if (tileValue > 0) {
+          this.boardArray[i][j].tileSprite.visible = true;
+          this.boardArray[i][j].tileSprite.setFrame(tileValue - 1);
+        } else {
+          this.boardArray[i][j].tileSprite.visible = false;
+        }
+      }
+    }
+    this.addTile();
+  }
+
   isLegalPosition(row, col) {
     var rowInside = row >= 0 && row < gameOptions.boardSize.rows;
     var colInside = col >= 0 && col < gameOptions.boardSize.cols;
@@ -128,6 +146,7 @@ class playGame extends Phaser.Scene {
         }
       }
     }
+    this.refreshBoard();
   }
 
   handleKey(e) {
