@@ -75,7 +75,8 @@ class playGame extends Phaser.Scene {
         tile.visible = false;
         this.boardArray[i][j] = {
           tileValue: 0,
-          tileSprite: tile
+          tileSprite: tile,
+          upgraded: false
         };
       }
     }
@@ -95,6 +96,7 @@ class playGame extends Phaser.Scene {
         if (tileValue > 0) {
           this.boardArray[i][j].tileSprite.visible = true;
           this.boardArray[i][j].tileSprite.setFrame(tileValue - 1);
+          this.boardArray[i][j].upgraded = false;
         } else {
           this.boardArray[i][j].tileSprite.visible = false;
         }
@@ -103,10 +105,16 @@ class playGame extends Phaser.Scene {
     this.addTile();
   }
 
-  isLegalPosition(row, col) {
+  isLegalPosition(row, col, value) {
     var rowInside = row >= 0 && row < gameOptions.boardSize.rows;
     var colInside = col >= 0 && col < gameOptions.boardSize.cols;
-    return rowInside && colInside;
+    if (!rowInside || !colInside) {
+      return false;
+    }
+    var emptySpot = this.boardArray[row][col].tileValue === 0;
+    var sameValue = this.boardArray[row][col].tileValue === value;
+    var alreadyUpgraded = this.boardArray[row][col].upgraded;
+    return emptySpot || (sameValue && !alreadyUpgraded);
   }
 
   makeMove(d) {
@@ -119,6 +127,7 @@ class playGame extends Phaser.Scene {
     var lastRow = gameOptions.boardSize.rows - (d === DOWN ? 1 : 0);
     var firstCol = d === LEFT ? 1 : 0;
     var lastCol = gameOptions.boardSize.cols - (d === RIGHT ? 1 : 0);
+    var movedSomething = false;
     for (var i = firstRow; i < lastRow; i++) {
       for (var j = firstCol; j < lastCol; j++) {
         var curRow = dRow === 1 ? lastRow - 1 - i : i;
@@ -127,26 +136,36 @@ class playGame extends Phaser.Scene {
         if (tileValue !== 0) {
           var newRow = curRow;
           var newCol = curCol;
-          while (this.isLegalPosition(newRow + dRow, newCol + dCol)) {
+          while (
+            this.isLegalPosition(newRow + dRow, newCol + dCol, tileValue)
+          ) {
             newRow += dRow;
             newCol += dCol;
           }
           movedTiles++;
-          this.boardArray[curRow][curCol].tileSprite.depth = movedTiles;
-          var newPos = this.getTilePosition(newRow, newCol);
-          this.boardArray[curRow][curCol].tileSprite.x = newPos.x;
-          this.boardArray[curRow][curCol].tileSprite.y = newPos.y;
-          this.boardArray[curRow][curCol].tileValue = 0;
-          if (this.boardArray[newRow][newCol].tileValue === tileValue) {
-            this.boardArray[newRow][newCol].tileValue++;
-            this.boardArray[curRow][curCol].tileSprite.setFrame(tileValue);
-          } else {
-            this.boardArray[newRow][newCol].tileValue = tileValue;
+          if (newRow !== curRow || newCol !== curCol) {
+            movedSomething = true;
+            this.boardArray[curRow][curCol].tileSprite.depth = movedTiles;
+            var newPos = this.getTilePosition(newRow, newCol);
+            this.boardArray[curRow][curCol].tileSprite.x = newPos.x;
+            this.boardArray[curRow][curCol].tileSprite.y = newPos.y;
+            this.boardArray[curRow][curCol].tileValue = 0;
+            if (this.boardArray[newRow][newCol].tileValue === tileValue) {
+              this.boardArray[newRow][newCol].tileValue++;
+              this.boardArray[newRow][newCol].upgraded = true;
+              this.boardArray[curRow][curCol].tileSprite.setFrame(tileValue);
+            } else {
+              this.boardArray[newRow][newCol].tileValue = tileValue;
+            }
           }
         }
       }
     }
-    this.refreshBoard();
+    if (movedSomething) {
+      this.refreshBoard();
+    } else {
+      this.canMove = true;
+    }
   }
 
   handleKey(e) {
