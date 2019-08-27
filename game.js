@@ -39,6 +39,12 @@ class bootGame extends Phaser.Scene {
     super("BootGame");
   }
   preload() {
+    this.load.image("restart", "assets/sprites/restart.png");
+    this.load.image("scorepanel", "assets/sprites/scorepanel.png");
+    this.load.image("scorelabels", "assets/sprites/scorelabels.png");
+    this.load.image("logo", "assets/sprites/logo.png");
+    this.load.image("howtoplay", "assets/sprites/howtoplay.png");
+    this.load.image("gametitle", "assets/sprites/gametitle.png");
     this.load.image("emptytile", "assets/sprites/emptytile.png");
     this.load.spritesheet("tiles", "assets/sprites/tiles.png", {
       frameWidth: gameOptions.tileSize,
@@ -64,6 +70,21 @@ class playGame extends Phaser.Scene {
     super("PlayGame");
   }
   create() {
+    var restartXY = this.getTilePosition(-0.8, gameOptions.cols - 1);
+    var restartButton = this.add.sprite(restartXY.x, restartXY.y, "restart");
+    var scoreXY = this.getTilePosition(-0.8, 1);
+    this.add.image(scoreXY.x, scoreXY.y, "scorepanel");
+    this.add.image(scoreXY.x, scoreXY.y - 70, "scorelabels");
+    var gameTitle = this.add.image(10, 5, "gametitle");
+    gameTitle.setOrigin(0, 0);
+    var howTo = this.add.image(game.config.width, 5, "howtoplay");
+    howTo.setOrigin(1, 0);
+    var logo = this.add.sprite(
+      game.config.width / 2,
+      game.config.height,
+      "logo"
+    );
+    logo.setOrigin(0.5, 1);
     this.canMove = false;
     this.boardArray = [];
     console.log("This is my very first Phaser game");
