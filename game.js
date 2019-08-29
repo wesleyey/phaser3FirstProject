@@ -10,7 +10,8 @@ var gameOptions = {
   swipeMaxTime: 1000,
   swipeMinDistance: 20,
   swipeMinNormal: 0.85,
-  aspectRatio: 16 / 9
+  aspectRatio: 16 / 9,
+  localStorageName: "topscore"
 };
 
 const LEFT = 0;
@@ -92,7 +93,16 @@ class playGame extends Phaser.Scene {
     var textXY = this.getTilePosition(-0.92, -0.4);
     this.scoreText = this.add.bitmapText(textXY.x, textXY.y, "font", 0);
     textXY = this.getTilePosition(-0.92, 1.1);
-    this.bestScoreText = this.add.bitmapText(textXY.x, textXY.y, "font", 0);
+    this.bestScore = localStorage.getItem(gameOptions.localStorageName);
+    if (this.bestScore === null) {
+      this.bestScore = 0;
+    }
+    this.bestScoreText = this.add.bitmapText(
+      textXY.x,
+      textXY.y,
+      "font",
+      this.bestScore.toString()
+    );
     var gameTitle = this.add.image(10, 5, "gametitle");
     gameTitle.setOrigin(0, 0);
     var howTo = this.add.image(game.config.width, 5, "howtoplay");
@@ -184,6 +194,12 @@ class playGame extends Phaser.Scene {
   }
 
   refreshBoard() {
+    this.scoreText.text = this.score.toString();
+    if (this.score > this.bestScore) {
+      this.bestScore = this.score;
+      localStorage.setItem(gameOptions.localStorageName, this.bestScore);
+      this.bestScoreText.text = this.bestScore.toString();
+    }
     for (var i = 0; i < gameOptions.boardSize.rows; i++) {
       for (var j = 0; j < gameOptions.boardSize.cols; j++) {
         var spritePosition = this.getTilePosition(i, j);
@@ -206,6 +222,10 @@ class playGame extends Phaser.Scene {
     var rowInside = row >= 0 && row < gameOptions.boardSize.rows;
     var colInside = col >= 0 && col < gameOptions.boardSize.cols;
     if (!rowInside || !colInside) {
+      return false;
+    }
+    if (this.boardArray[row][col].tileValue === 12) {
+      console.log("You have reached the end of game!!");
       return false;
     }
     var emptySpot = this.boardArray[row][col].tileValue === 0;
@@ -255,8 +275,12 @@ class playGame extends Phaser.Scene {
               willUpdate
             );
             this.boardArray[curRow][curCol].tileValue = 0;
-            if (this.boardArray[newRow][newCol].tileValue === tileValue) {
+            if (willUpdate) {
               this.boardArray[newRow][newCol].tileValue++;
+              this.score += Math.pow(
+                2,
+                this.boardArray[newRow][newCol].tileValue
+              );
               this.boardArray[newRow][newCol].upgraded = true;
               //this.boardArray[curRow][curCol].tileSprite.setFrame(tileValue);
             } else {
