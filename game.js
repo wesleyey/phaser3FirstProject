@@ -58,6 +58,11 @@ class bootGame extends Phaser.Scene {
       "assets/sounds/grow.ogg",
       "assets/sounds/grow.mp3"
     ]);
+    this.load.bitmapFont(
+      "font",
+      "assets/fonts/font.png",
+      "assets/fonts/font.fnt"
+    );
   }
   create() {
     console.log("Loading...");
@@ -70,21 +75,39 @@ class playGame extends Phaser.Scene {
     super("PlayGame");
   }
   create() {
-    var restartXY = this.getTilePosition(-0.8, gameOptions.cols - 1);
+    this.score = 0;
+    var restartXY = this.getTilePosition(-0.8, gameOptions.boardSize.cols - 1);
     var restartButton = this.add.sprite(restartXY.x, restartXY.y, "restart");
+    restartButton.setInteractive();
+    restartButton.on(
+      "pointerdown",
+      function() {
+        this.scene.start("PlayGame");
+      },
+      this
+    );
     var scoreXY = this.getTilePosition(-0.8, 1);
     this.add.image(scoreXY.x, scoreXY.y, "scorepanel");
     this.add.image(scoreXY.x, scoreXY.y - 70, "scorelabels");
+    var textXY = this.getTilePosition(-0.92, -0.4);
+    this.scoreText = this.add.bitmapText(textXY.x, textXY.y, "font", 0);
+    textXY = this.getTilePosition(-0.92, 1.1);
+    this.bestScoreText = this.add.bitmapText(textXY.x, textXY.y, "font", 0);
     var gameTitle = this.add.image(10, 5, "gametitle");
     gameTitle.setOrigin(0, 0);
     var howTo = this.add.image(game.config.width, 5, "howtoplay");
     howTo.setOrigin(1, 0);
     var logo = this.add.sprite(
       game.config.width / 2,
-      game.config.height,
+      game.config.height - 10,
       "logo"
     );
     logo.setOrigin(0.5, 1);
+    logo.setInteractive();
+    logo.on("pointerdown", function() {
+      window.location.href =
+        "https://play.google.com/store/apps/developer?id=wesleyey";
+    });
     this.canMove = false;
     this.boardArray = [];
     console.log("This is my very first Phaser game");
